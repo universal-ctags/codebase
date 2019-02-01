@@ -14,7 +14,7 @@ We assume you may have enough storage space on your PC.
 1. Get the input code for a parser for the language you are
    interested in with following command line:
 
-   .. code-block::console
+   .. code-block:: console
 
 	$ ./codebase clone <LANGUAGE>
 
@@ -22,7 +22,7 @@ We assume you may have enough storage space on your PC.
    The following command lists The available language :
 
 
-   .. code-block::console
+   .. code-block:: console
 
 	$ ./codebase list-languages
 	#           LANGUAGE	CODE
@@ -36,7 +36,7 @@ We assume you may have enough storage space on your PC.
 
 2. Run Universal-ctags for the cloned code with following command line:
 
-   .. code-block::console
+   .. code-block:: console
 
 	$ ./codebase ctags <LANGUAGE> [<PROFILE>]
 
@@ -44,7 +44,7 @@ We assume you may have enough storage space on your PC.
    We call such option combination PROFILE.
    The following command is for listing pre defined profiles:
 
-   .. code-block::console
+   .. code-block:: console
 
 	$ ./codebase list-profiles
 
