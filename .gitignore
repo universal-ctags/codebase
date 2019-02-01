@@ -1,0 +1,7 @@
+code/*
+lcopy.d/private-*.lcopy
+profile.d/private-*.ctags
+results/*
+tags
+perf.data
+perf.data.old

@@ -1,0 +1,3 @@
+REPO=https://github.com/qt/qtbase.git
+ALIGNMENT=v5.12.1
+LANGUAGES=C++

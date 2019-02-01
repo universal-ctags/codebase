@@ -1,0 +1,3 @@
+REPO=https://github.com/gnustep/libs-base.git
+ALIGNMENT=base-1_26_0
+LANGUAGES=ObjectiveC

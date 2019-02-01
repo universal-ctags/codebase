@@ -1,0 +1,472 @@
+#!/bin/bash
+#
+# codebase -- a tool for managing and utilizing codebase for Universal-ctags
+#
+# Copyright (C) 2019 Red Hat, Inc.
+# Copyright (C) 2019 Masatake YAMATO
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+: ${VCS:=git}
+: ${MAIN_BRANCH:=master}
+: ${CTAGS=u-ctags}
+
+ERROR ()
+{
+    local status_="$1"
+    local msg="$2"
+    shift 2
+    echo "ERROR: " "$msg" 1>&2
+    exit $status_
+}
+
+WARN ()
+{
+    local msg="$1"
+    shift 1
+    echo "WARNING: " "$msg" 1>&2
+}
+
+member_csv()
+{
+    local t=$1
+    shift
+
+    local elt
+
+    local OLDIFS=$IFS
+    IFS=,
+    for elt in $@; do
+	if [[ "$elt" = "$t" ]]; then
+	    return 0
+	fi
+    done
+    IFS=$OLDIFS
+    return 1
+}
+
+verify()
+{
+    type git > /dev/null 2>&1 || ERROR 1 "No git command available"
+    if [[ ! -d code ]]; then
+	ERROR 1 "no output directory"
+    fi
+}
+
+#
+# HELP SUBCOMMAND
+#
+cmd_help_help()
+{
+    cat <<EOF
+	$0 help [SUBCOMMAND]
+EOF
+}
+
+help_cmd()
+{
+    type "cmd_${1}_help" > /dev/null 2>&1 || ERROR 1 "no such command: $1"
+    "cmd_${1}_help"
+}
+
+help()
+{
+    local cmd
+
+    if [[ -n "$1" ]]; then
+	help_cmd "$1"
+	return $?
+    fi
+
+    for cmd in clone ctags list-code list-languages list-profiles help; do
+	if type "cmd_${cmd/-/_}_help" > /dev/null 2>&1; then
+	   "cmd_${cmd/-/_}_help"
+	fi
+    done
+    return 0
+}
+
+#
+# CLONE SUBCOMMAND
+#
+cmd_clone_help()
+{
+    cat <<EOF
+	$0 clone [LANGUAGE|all]
+EOF
+}
+
+git_clone()
+{
+    local repo=$1
+    local odir=$2
+
+    git clone "${repo}" "${odir}" || ERROR 1 "failed to clone git repo: ${repo}"
+}
+
+git_checkout()
+{
+    local branch=$1
+    git checkout "${branch}" || ERROR 1 "failed to checkout git branch: ${branch}"
+}
+
+clone_prep()
+{
+    mkdir -p code
+}
+
+cmd_clone_run()
+{
+    local language=$1
+    local lcopy
+
+    clone_prep
+    verify
+
+    if [[ -z "$language" ]]; then
+	ERROR 1 "no language specified (use 'all' for cloning all repositories)"
+    fi
+
+    for lcopy in lcopy.d/*.lcopy; do
+	if [[ -f "${lcopy}" ]]; then
+	    local odir=$(basename "$lcopy" .lcopy)
+	    if [[ ! -d code/"${odir}" ]]; then
+		(
+		    if source ${lcopy}; then
+			if [[ -z "${REPO}" ]]; then
+			    ERROR 1 "no REPO given in ${lcopy}"
+			fi
+			if [[ -z "${ALIGNMENT}" ]]; then
+			    ERROR 1 "no ALIGNMENT given in ${lcopy}"
+			fi
+			if [[ -z "${LANGUAGES}" ]]; then
+			    ERROR 1 "no LANGUAGES given in ${lcopy}"
+			fi
+			if [[ "${language}" = all ]] ||
+			       member_csv "${language}" "${LANGUAGES}"; then
+			    type "${VCS}"_clone > /dev/null 2>&1 || ERROR 1 "no such vcs handler: ${VCS}"
+			    "${VCS}"_clone "${REPO}" "code/${odir}"
+			    cd "code/${odir}"
+			    "${VCS}"_checkout "${ALIGNMENT}"
+			fi
+		    fi
+		)
+	    fi
+	else
+	    ERROR 1 "no lcopy file for language: ${language}"
+	fi
+    done
+}
+
+#
+# LIST-CODE SUBCOMMAND
+#
+cmd_list_code_help()
+{
+    cat <<EOF
+	$0 list-code
+EOF
+}
+
+cmd_list_code_run()
+{
+    local lcopy
+
+    printf "#%19s	CLONED?	%s\n" "NAME" "LANGUAGES"
+
+    for lcopy in lcopy.d/*.lcopy; do
+	if [[ -f "${lcopy}" ]]; then
+	    local name=$(basename "$lcopy" .lcopy)
+	    (
+		if source ${lcopy}; then
+		    local cloned=no
+		    if [[ -d code/${name} ]]; then
+			cloned=yes
+		    fi
+		    printf "%20s	%-7s	%s\n" "${name}" "${cloned}" "${LANGUAGES/,/ }"
+		fi
+	    )
+	else
+	    ERROR 1 "no lcopy file for language: ${language}"
+	fi
+    done
+}
+
+#
+# LIST-LANGUAGES SUBCOMMAND
+#
+cmd_list_languages_help()
+{
+    cat <<EOF
+	$0 list-languages
+EOF
+}
+
+cmd_list_languages_run()
+{
+    local lcopy
+
+    local languages=$(for lcopy in lcopy.d/*.lcopy; do
+			  if [[ -f "${lcopy}" ]]; then
+			      local name=$(basename "$lcopy" .lcopy)
+			      (
+				  if source ${lcopy}; then
+				      local lang
+				      local OLDIFS=$IFS
+				      IFS=,
+				      for lang in $LANGUAGES; do
+					  echo $lang
+				      done
+				      IFS=$OLDIFS
+				  fi
+			      )
+			  else
+			      ERROR 1 "no lcopy file for language: ${language}"
+			  fi
+		      done | sort -u)
+
+    printf "#%19s	%s\n" "LANGUAGE" "CODE"
+    local lang
+    for lang in $languages; do
+	local names=$(for lcopy in lcopy.d/*.lcopy; do
+			  if [[ -f "${lcopy}" ]]; then
+			      local name=$(basename "$lcopy" .lcopy)
+			      (
+				  if source ${lcopy}; then
+				      if member_csv $lang $LANGUAGES; then
+					  echo $name
+				      fi
+				  fi
+			      )
+			  fi
+		      done)
+	printf "%20s	%s\n" "${lang}" "$(echo ${names})"
+    done
+}
+
+#
+# LIST-PROFILES SUBCOMMAND
+#
+cmd_list_profiles_help()
+{
+    cat <<EOF
+	$0 list-profiles
+EOF
+}
+
+cmd_list_profiles_run()
+{
+    local profile
+
+    printf "%19s	%s\n" "PROFILE" "DESCRIPTION"
+    for profile in profile.d/*.ctags; do
+	if [[ ! -f "$profile" ]]; then
+	    break;
+	fi
+	local name=$(basename "$profile" .ctags)
+	local desc=$(grep "^# @" $profile | sed 's/^# @//' | tail -1)
+	printf "%20s	%s\n" "${name}" "${desc}"
+    done
+}
+
+#
+# CTAGS SUBCOMMAND
+#
+cmd_ctags_help()
+{
+    cat <<EOF
+	$0 ctags [--valgrind|--perf] [LANGUAGE|all] [PROFILE]
+EOF
+}
+
+ctags_prep()
+{
+    mkdir -p results
+}
+
+cmd_ctags_run()
+{
+    local language=
+    local profile=
+    local valgrind_flags=--leak-check=full
+    local verbose
+    local measure=time
+
+    while [[ $# -gt 0 ]]; do
+	case "$1" in
+	    (--verbose|-v)
+		verbose=1
+		shift 1
+		;;
+	    (--valgrind)
+		measure=valgrind
+		shift 1
+		;;
+	    (--valgrind=*)
+		valgrind_flags=${1/--valgrind=/}
+		measure=valgrind
+		shift 1
+		;;
+	    (--perf)
+		measure=perf
+		shift 1
+		;;
+	    (-*)
+		ERROR 1 "ctags subcommand: unknown option $1"
+		;;
+	    (*)
+		break;
+		;;
+	esac
+    done
+
+    if [[ "$measure" = "valgrind" ]]; then
+	if ! type "valgrind" > /dev/null 2>&1; then
+	    ERROR 1 "valgrind is not found"
+	fi
+    fi
+
+    if [[ "$measure" = "perf" ]]; then
+	if ! type "perf" > /dev/null 2>&1; then
+	    ERROR 1 "perf is not found"
+	fi
+    fi
+
+    language=$1
+    profile=$2
+
+    if [[ -z "${language}" ]]; then
+	language=all
+    fi
+
+    if [[ -n "${profile}" ]]; then
+	if [[ -f "profile.d/${profile}.ctags" ]]; then
+	    opt=--options=profile.d/${profile}.ctags
+	else
+	    ERROR 1 "No such profile: ${profile}"
+	fi
+    fi
+
+    local lcopy
+    local odirs
+    local odir
+
+    if ! type "${CTAGS}" > /dev/null 2>&1; then
+	ERROR 1 "No ${CTAGS} found (set CTAGS environment variable)"
+    fi
+
+    odirs=$(
+	for lcopy in lcopy.d/*.lcopy; do
+	    (
+		if source ${lcopy}; then
+		    if [[ "$language" = 'all' ]] || member_csv "${language}" "${LANGUAGES}"; then
+			echo $(basename "$lcopy" .lcopy)
+		    fi
+		fi
+	    )
+	done
+	 )
+    if [[ -z "$odirs" ]]; then
+	ERROR 1 "No lcopy for \"${language}\""
+    fi
+
+    for odir in ${odirs}; do
+	if [[ ! -d code/$odir ]]; then
+	    if [[ "$language" = 'all' ]]; then
+		WARN 1 "$odir is not cloned yet"
+	    else
+		ERROR 1 "$odir used as input for $language language is not cloned yet"
+	    fi
+	fi
+    done
+
+    ctags_prep
+
+    local start=$(date  "+%F-%R:%S")
+    local ctags_version=$(${CTAGS} --version | sed -ne 's/.*\([0-9a-f]\{8\}\).*/\1/p')
+    local ctags_features=$(${CTAGS} --version | grep features: | sed -e 's/^[^:]\+: //' -e 's/, / /g')
+    local alignment=default
+    local log=$(printf "%s,% -20s,% -10s,% -10s,% -10s,%s" "${ctags_version}" "${language}" "${profile}" "${measure}" "${alignment}" "${start}" | tr ' ' .)
+    (
+	echo version:  ${ctags_version}
+	echo features: ${ctags_features}
+
+	[[ -n "${verbose}" ]] && printf "%s" "Making page caches hot..." 1>&2
+	for odir in ${odirs}; do
+	    find code/${odir} -type f -print0 | xargs -0 cat > /dev/null
+	done
+	[[ -n "${verbose}" ]] && printf "done\n" 1>&2
+
+	local inputs=$(for odir in ${odirs}; do echo "code/${odir}"; done)
+
+	printf "cmdline: " 1>&2
+
+	if [[ "${measure}" = "valgrind" ]]; then
+	    set -x
+	    valgrind ${valgrind_flags} ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
+		     -R $inputs \
+		     > /dev/null
+	    set +x
+	elif [[ "${measure}" = "perf" ]]; then
+	    set -x
+	    perf record -g ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
+		 -R $inputs \
+		 > /dev/null
+	    set +x
+	else
+	    set -x
+	    time ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
+		 -R $inputs \
+		 > /dev/null
+	    set +x
+	fi
+    ) 2>&1 | tee results/${log}.log
+}
+
+
+#
+# MAIN DRIVER
+#
+main()
+{
+    local cmd
+
+    if [[ $# = 0 ]]; then
+	help 1>&2
+	exit 1
+    fi
+
+    case $1 in
+	(--help|help)
+	    shift
+	    help "$@"
+	    return $?
+	    ;;
+	(-*)
+	    ERROR 1 "no such option: $1"
+	    ;;
+	*)
+	    cmd=$1
+	    shift
+	    ;;
+    esac
+
+    type "cmd_${cmd//-/_}_run" > /dev/null 2>&1 || ERROR 1 "no such subcommand: ${cmd}"
+    "cmd_${cmd//-/_}_run" "$@"
+
+    return $?
+}
+
+main "$@"
