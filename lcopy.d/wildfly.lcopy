@@ -1,0 +1,4 @@
+REPO=https://github.com/wildfly/wildfly.git
+ALIGNMENT=15.0.1.Final
+LANGUAGES=Java
+

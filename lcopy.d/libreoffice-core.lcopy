@@ -1,0 +1,3 @@
+REPO=https://github.com/LibreOffice/core.git
+ALIGNMENT=c744995d7acbfd1ba06eb61c8f00d119a59d3cbf
+LANGUAGES=C++,XSLT
