@@ -432,7 +432,7 @@ cmd_ctags_run()
 		 > /dev/null
 	    set +x
 	fi
-    ) 2>&1 | tee results/${log}.log
+    ) 2>&1 | grep -v '^set +x' | tee results/${log}.log
 }
 
 
