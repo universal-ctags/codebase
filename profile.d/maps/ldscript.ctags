@@ -1,0 +1,3 @@
+# The latest u-ctags has this map.
+# However, this is useful to run older u-ctags.
+--map-LdScript=+.ldi
