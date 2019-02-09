@@ -287,13 +287,16 @@ cmd_list_profiles_run()
 cmd_ctags_help()
 {
     cat <<EOF
-	$0 ctags [-v] [-o TAGOUTPUT] [--valgrind|--perf|--gdb] [LANGUAGE|all] [PROFILE]
+	$0 ctags [-v] [-o TAGOUTPUT|-O] [--valgrind|--perf|--gdb] [LANGUAGE|all] [PROFILE]
 
 	-v|--verbose
 	Makes the output of $0 verbose (not for ctags itself).
 
 	-o|--output
 	Specify the tags output (default: /dev/null).
+
+	-O
+	Record tags output to a file having an automatically generated unique name.
 
 	--valgrid
 	Run ctags under valgrind command.
@@ -302,7 +305,7 @@ cmd_ctags_help()
 	Run ctags under perf record.
 
 	--gdb
-	Run ctags under gdb command. -o option is ignored.
+	Run ctags under gdb command. -o and -O options are ignored.
 EOF
 }
 
@@ -352,6 +355,10 @@ cmd_ctags_run()
 	    (-o=*)
 		ofile=${1/-o=/}
 		shift 1
+		;;
+	    (-O)
+		ofile=
+		shift
 		;;
 	    (--gdb)
 		measure=gdb
@@ -434,16 +441,19 @@ cmd_ctags_run()
 
     ctags_prep
 
-    if [[ "$ofile" = "-" ]]; then
-	ofile=/dev/stdout
-    fi
-
     local start=$(date  "+%F-%R:%S")
     local ctags_version=$(${CTAGS} --version | sed -ne 's/.*\([0-9a-f]\{8\}\).*/\1/p')
     local ctags_features=$(${CTAGS} --version | grep features: | sed -e 's/^[^:]\+: //' -e 's/, / /g')
     local alignment=default
     local inputs=$(for odir in ${odirs}; do echo "code/${odir}"; done)
-    local log=$(printf "%s,% -20s,% -10s,% -10s,% -10s,%s" "${ctags_version}" "${language}" "${profile}" "${measure}" "${alignment}" "${start}" | tr ' ' .).log
+    local fbody=$(printf "%s,% -20s,% -10s,% -10s,% -10s,%s" "${ctags_version}" "${language}" "${profile}" "${measure}" "${alignment}" "${start}" | tr ' ' .)
+    local log=results/${fbody}.log
+
+    if [[ -z "$ofile" ]]; then
+	ofile=results/${fbody}.tags
+    elif [[ "$ofile" = "-" ]]; then
+	ofile=/dev/stdout
+    fi
 
     if [[ "${measure}" != "gdb" ]]; then
     (
@@ -479,7 +489,7 @@ cmd_ctags_run()
 		 > $ofile
 	    set +x
 	fi
-    ) 2>&1 | grep -v '^set +x' | tee results/${log}
+    ) 2>&1 | grep -v '^set +x' | tee ${log}
     else
 	gdb -e ${CTAGS} -ex "run --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -R $input"
 	rm -f ./tags
