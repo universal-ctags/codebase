@@ -68,31 +68,42 @@ verify()
 #
 # HELP SUBCOMMAND
 #
-cmd_help_help()
+cmd_help_help_simple()
 {
     cat <<EOF
-	$0 help [SUBCOMMAND]
+$0 help [SUBCOMMAND]
 EOF
 }
 
 help_cmd()
 {
-    type "cmd_${1}_help" > /dev/null 2>&1 || ERROR 1 "no such command: $1"
-    "cmd_${1}_help"
+    if type "cmd_${1}_help" > /dev/null 2>&1; then
+	echo -n Usage:
+	"cmd_${1}_help_simple"
+	echo
+	"cmd_${1}_help"
+    elif type "cmd_${1}_help_simple" > /dev/null 2>&1; then
+	echo -n Usage:
+	"cmd_${1}_help_simple"
+    else
+	ERROR 1 "no such command: $1"
+    fi
 }
 
 help()
 {
-    local cmd
+    local cmd=$1
 
-    if [[ -n "$1" ]]; then
-	help_cmd "$1"
+    if [[ -n "${cmd}" ]]; then
+	help_cmd "${cmd/-/_}"
 	return $?
     fi
 
+    echo Usage:
     for cmd in clone ctags list-code list-languages list-profiles help; do
-	if type "cmd_${cmd/-/_}_help" > /dev/null 2>&1; then
-	   "cmd_${cmd/-/_}_help"
+	if type "cmd_${cmd/-/_}_help_simple" > /dev/null 2>&1; then
+	    echo -n "	"
+	    "cmd_${cmd/-/_}_help_simple"
 	fi
     done
     return 0
@@ -101,10 +112,10 @@ help()
 #
 # CLONE SUBCOMMAND
 #
-cmd_clone_help()
+cmd_clone_help_simple()
 {
     cat <<EOF
-	$0 clone [LANGUAGE|all]
+$0 clone [LANGUAGE|all]
 EOF
 }
 
@@ -173,10 +184,10 @@ cmd_clone_run()
 #
 # LIST-CODE SUBCOMMAND
 #
-cmd_list_code_help()
+cmd_list_code_help_simple()
 {
     cat <<EOF
-	$0 list-code
+$0 list-code
 EOF
 }
 
@@ -207,10 +218,10 @@ cmd_list_code_run()
 #
 # LIST-LANGUAGES SUBCOMMAND
 #
-cmd_list_languages_help()
+cmd_list_languages_help_simple()
 {
     cat <<EOF
-	$0 list-languages
+$0 list-languages
 EOF
 }
 
@@ -259,10 +270,10 @@ cmd_list_languages_run()
 #
 # LIST-PROFILES SUBCOMMAND
 #
-cmd_list_profiles_help()
+cmd_list_profiles_help_simple()
 {
     cat <<EOF
-	$0 list-profiles
+$0 list-profiles
 EOF
 }
 
@@ -284,11 +295,16 @@ cmd_list_profiles_run()
 #
 # CTAGS SUBCOMMAND
 #
+cmd_ctags_help_simple()
+{
+    cat <<EOF
+$0 ctags [-v] [-o TAGOUTPUT|-O] [--valgrind|--perf|--gdb] [LANGUAGE|all] [PROFILE]
+EOF
+}
+
 cmd_ctags_help()
 {
     cat <<EOF
-	$0 ctags [-v] [-o TAGOUTPUT|-O] [--valgrind|--perf|--gdb] [LANGUAGE|all] [PROFILE]
-
 	-v|--verbose
 	Makes the output of $0 verbose (not for ctags itself).
 
@@ -363,6 +379,10 @@ cmd_ctags_run()
 	    (--gdb)
 		measure=gdb
 		shift 1
+		;;
+	    (--help|-h)
+		help ctags
+		exit 0
 		;;
 	    (-*)
 		ERROR 1 "ctags subcommand: unknown option $1"
@@ -510,7 +530,7 @@ main()
     fi
 
     case $1 in
-	(--help|help)
+	(--help|help|-h)
 	    shift
 	    help "$@"
 	    return $?
