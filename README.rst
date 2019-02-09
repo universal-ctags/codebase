@@ -41,7 +41,7 @@ We assume you may have enough storage space on your PC.
 	$ [CTAGS=${where your ctags executable is}] ./codebase ctags <LANGUAGE> [<PROFILE>]
 
    codebase refers *CTAGS* environment variable to run ctags.
-   
+
    You can run ctags with different option combination.
    We call such option combination *PROFILE*.
    The following command is for listing pre defined profiles:
