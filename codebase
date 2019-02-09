@@ -39,6 +39,13 @@ WARN ()
     echo "WARNING: " "$msg" 1>&2
 }
 
+verify_cmd()
+{
+    if ! type "$1" > /dev/null 2>&1; then
+	ERROR 1 "$1 is not found"
+    fi
+}
+
 member_csv()
 {
     local t=$1
@@ -393,23 +400,7 @@ cmd_ctags_run()
 	esac
     done
 
-    if [[ "$measure" = "valgrind" ]]; then
-	if ! type "valgrind" > /dev/null 2>&1; then
-	    ERROR 1 "valgrind is not found"
-	fi
-    fi
-
-    if [[ "$measure" = "perf" ]]; then
-	if ! type "perf" > /dev/null 2>&1; then
-	    ERROR 1 "perf is not found"
-	fi
-    fi
-
-    if [[ "$measure" = "gdb" ]]; then
-	if ! type "gdb" > /dev/null 2>&1; then
-	    ERROR 1 "gdb is not found"
-	fi
-    fi
+    verify_cmd "$measure"
 
     language=$1
     profile=$2
