@@ -287,7 +287,19 @@ cmd_list_profiles_run()
 cmd_ctags_help()
 {
     cat <<EOF
-	$0 ctags [-o TAGOUTPUT] [--valgrind|--perf] [LANGUAGE|all] [PROFILE]
+	$0 ctags [-v] [-o TAGOUTPUT] [--valgrind|--perf] [LANGUAGE|all] [PROFILE]
+
+	-v|--verbose
+	Makes the output of $0 verbose (not for ctags itself).
+
+	-o|--output
+	Specify the tags output (default: /dev/null).
+
+	--valgrid
+	Run ctags under valgrind command.
+
+	--perf
+	Run ctags under perf record.
 EOF
 }
 
