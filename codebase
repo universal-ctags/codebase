@@ -470,7 +470,7 @@ cmd_ctags_run()
     (
 	echo version:  ${ctags_version}
 	echo features: ${ctags_features}
-	echo log: results/${log}
+	echo log: ${log}
 	echo tagsoutput: $ofile
 
 	[[ -n "${verbose}" ]] && printf "%s" "Making page caches hot..." 1>&2
