@@ -64,9 +64,8 @@ member_csv()
     return 1
 }
 
-verify()
+clone_verify()
 {
-    type git > /dev/null 2>&1 || ERROR 1 "No git command available"
     if [[ ! -d code ]]; then
 	ERROR 1 "no output directory"
     fi
@@ -140,6 +139,20 @@ git_checkout()
     git checkout "${branch}" || ERROR 1 "failed to checkout git branch: ${branch}"
 }
 
+hg_clone()
+{
+    local repo=$1
+    local odir=$2
+
+    hg clone "${repo}" "${odir}" || ERROR 1 "failed to clone hg repo: ${repo}"
+}
+
+hg_checkout()
+{
+    local branch=$1
+    hg update "${branch}" || ERROR 1 "failed to checkout hg update: ${branch}"
+}
+
 clone_prep()
 {
     mkdir -p code
@@ -151,7 +164,7 @@ cmd_clone_run()
     local lcopy
 
     clone_prep
-    verify
+    clone_verify
 
     if [[ -z "$language" ]]; then
 	ERROR 1 "no language specified (use 'all' for cloning all repositories)"
@@ -163,6 +176,7 @@ cmd_clone_run()
 	    if [[ ! -d code/"${odir}" ]]; then
 		(
 		    if source ${lcopy}; then
+			verify_cmd ${VCS}
 			if [[ -z "${REPO}" ]]; then
 			    ERROR 1 "no REPO given in ${lcopy}"
 			fi
