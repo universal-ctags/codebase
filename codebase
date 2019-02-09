@@ -346,6 +346,7 @@ cmd_ctags_run()
     local verbose
     local measure=time
     local ofile=/dev/null
+    local opt=--options=profile.d/maps
 
     while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -411,7 +412,7 @@ cmd_ctags_run()
 
     if [[ -n "${profile}" ]]; then
 	if [[ -f "profile.d/${profile}.ctags" ]]; then
-	    opt=--options=profile.d/${profile}.ctags
+	    opt="$opt --options=profile.d/${profile}.ctags"
 	else
 	    ERROR 1 "No such profile: ${profile}"
 	fi
