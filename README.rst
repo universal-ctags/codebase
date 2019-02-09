@@ -52,8 +52,9 @@ We assume you may have enough storage space on your PC.
 		maximum0	Enables all extras, fields, and kinds
 		minimum0	Disables all fields and extras.
 
-  Results are displayed to your terminal. Tee'ed output goes
-  results/ directory.
+
+   Results are displayed to your terminal. Tee'ed output goes
+   to a file under results/ directory.
 
 
 How to add your code to code base
