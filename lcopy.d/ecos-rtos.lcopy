@@ -1,0 +1,4 @@
+REPO=http://hg-pub.ecoscentric.com/ecos/
+VCS=hg
+ALIGNMENT=3292
+LANGUAGES=Asm,LdScript
