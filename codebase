@@ -428,10 +428,12 @@ cmd_ctags_run()
     local ctags_version=$(${CTAGS} --version | sed -ne 's/.*\([0-9a-f]\{8\}\).*/\1/p')
     local ctags_features=$(${CTAGS} --version | grep features: | sed -e 's/^[^:]\+: //' -e 's/, / /g')
     local alignment=default
-    local log=$(printf "%s,% -20s,% -10s,% -10s,% -10s,%s" "${ctags_version}" "${language}" "${profile}" "${measure}" "${alignment}" "${start}" | tr ' ' .)
+    local log=$(printf "%s,% -20s,% -10s,% -10s,% -10s,%s" "${ctags_version}" "${language}" "${profile}" "${measure}" "${alignment}" "${start}" | tr ' ' .).log
     (
 	echo version:  ${ctags_version}
 	echo features: ${ctags_features}
+	echo log: results/${log}
+	echo tagsoutput: $ofile
 
 	[[ -n "${verbose}" ]] && printf "%s" "Making page caches hot..." 1>&2
 	for odir in ${odirs}; do
@@ -462,7 +464,7 @@ cmd_ctags_run()
 		 > $ofile
 	    set +x
 	fi
-    ) 2>&1 | grep -v '^set +x' | tee results/${log}.log
+    ) 2>&1 | grep -v '^set +x' | tee results/${log}
 }
 
 
