@@ -287,7 +287,7 @@ cmd_list_profiles_run()
 cmd_ctags_help()
 {
     cat <<EOF
-	$0 ctags [--valgrind|--perf] [LANGUAGE|all] [PROFILE]
+	$0 ctags [-o TAGOUTPUT] [--valgrind|--perf] [LANGUAGE|all] [PROFILE]
 EOF
 }
 
@@ -303,6 +303,7 @@ cmd_ctags_run()
     local valgrind_flags=--leak-check=full
     local verbose
     local measure=time
+    local ofile=/dev/null
 
     while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -321,6 +322,19 @@ cmd_ctags_run()
 		;;
 	    (--perf)
 		measure=perf
+		shift 1
+		;;
+	    (--output|-o)
+		shift 1
+		ofile=$1
+		shift 1
+		;;
+	    (--output=*)
+		ofile=${1/--output=/}
+		shift 1
+		;;
+	    (-o=*)
+		ofile=${1/-o=/}
 		shift 1
 		;;
 	    (-*)
@@ -394,6 +408,10 @@ cmd_ctags_run()
 
     ctags_prep
 
+    if [[ "$ofile" = "-" ]]; then
+	ofile=/dev/stdout
+    fi
+
     local start=$(date  "+%F-%R:%S")
     local ctags_version=$(${CTAGS} --version | sed -ne 's/.*\([0-9a-f]\{8\}\).*/\1/p')
     local ctags_features=$(${CTAGS} --version | grep features: | sed -e 's/^[^:]\+: //' -e 's/, / /g')
@@ -417,19 +435,19 @@ cmd_ctags_run()
 	    set -x
 	    valgrind ${valgrind_flags} ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
 		     -R $inputs \
-		     > /dev/null
+		     > $ofile
 	    set +x
 	elif [[ "${measure}" = "perf" ]]; then
 	    set -x
 	    perf record -g ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
 		 -R $inputs \
-		 > /dev/null
+		 > $ofile
 	    set +x
 	else
 	    set -x
 	    time ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
 		 -R $inputs \
-		 > /dev/null
+		 > $ofile
 	    set +x
 	fi
     ) 2>&1 | grep -v '^set +x' | tee results/${log}.log
