@@ -287,7 +287,7 @@ cmd_list_profiles_run()
 cmd_ctags_help()
 {
     cat <<EOF
-	$0 ctags [-v] [-o TAGOUTPUT] [--valgrind|--perf] [LANGUAGE|all] [PROFILE]
+	$0 ctags [-v] [-o TAGOUTPUT] [--valgrind|--perf|--gdb] [LANGUAGE|all] [PROFILE]
 
 	-v|--verbose
 	Makes the output of $0 verbose (not for ctags itself).
@@ -300,6 +300,9 @@ cmd_ctags_help()
 
 	--perf
 	Run ctags under perf record.
+
+	--gdb
+	Run ctags under gdb command. -o option is ignored.
 EOF
 }
 
@@ -313,6 +316,7 @@ cmd_ctags_run()
     local language=
     local profile=
     local valgrind_flags=--leak-check=full
+    local gdb
     local verbose
     local measure=time
     local ofile=/dev/null
@@ -349,6 +353,10 @@ cmd_ctags_run()
 		ofile=${1/-o=/}
 		shift 1
 		;;
+	    (--gdb)
+		measure=gdb
+		shift 1
+		;;
 	    (-*)
 		ERROR 1 "ctags subcommand: unknown option $1"
 		;;
@@ -367,6 +375,12 @@ cmd_ctags_run()
     if [[ "$measure" = "perf" ]]; then
 	if ! type "perf" > /dev/null 2>&1; then
 	    ERROR 1 "perf is not found"
+	fi
+    fi
+
+    if [[ "$measure" = "gdb" ]]; then
+	if ! type "gdb" > /dev/null 2>&1; then
+	    ERROR 1 "gdb is not found"
 	fi
     fi
 
@@ -428,7 +442,10 @@ cmd_ctags_run()
     local ctags_version=$(${CTAGS} --version | sed -ne 's/.*\([0-9a-f]\{8\}\).*/\1/p')
     local ctags_features=$(${CTAGS} --version | grep features: | sed -e 's/^[^:]\+: //' -e 's/, / /g')
     local alignment=default
+    local inputs=$(for odir in ${odirs}; do echo "code/${odir}"; done)
     local log=$(printf "%s,% -20s,% -10s,% -10s,% -10s,%s" "${ctags_version}" "${language}" "${profile}" "${measure}" "${alignment}" "${start}" | tr ' ' .).log
+
+    if [[ "${measure}" != "gdb" ]]; then
     (
 	echo version:  ${ctags_version}
 	echo features: ${ctags_features}
@@ -440,8 +457,6 @@ cmd_ctags_run()
 	    find code/${odir} -type f -print0 | xargs -0 cat > /dev/null
 	done
 	[[ -n "${verbose}" ]] && printf "done\n" 1>&2
-
-	local inputs=$(for odir in ${odirs}; do echo "code/${odir}"; done)
 
 	printf "cmdline: " 1>&2
 
@@ -465,6 +480,10 @@ cmd_ctags_run()
 	    set +x
 	fi
     ) 2>&1 | grep -v '^set +x' | tee results/${log}
+    else
+	gdb -e ${CTAGS} -ex "run --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -R $input"
+	rm -f ./tags
+    fi
 }
 
 
