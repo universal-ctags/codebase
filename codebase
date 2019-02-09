@@ -411,7 +411,7 @@ cmd_ctags_run()
     for odir in ${odirs}; do
 	if [[ ! -d code/$odir ]]; then
 	    if [[ "$language" = 'all' ]]; then
-		WARN 1 "$odir is not cloned yet"
+		WARN "$odir is not cloned yet"
 	    else
 		ERROR 1 "$odir used as input for $language language is not cloned yet"
 	    fi
