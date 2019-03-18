@@ -34,6 +34,12 @@ We assume you may have enough storage space on your PC.
 		    LdScript	linux
 		  ObjectiveC	gnustep-libs-base
 
+   An example preapting C source code:
+   .. code-block:: console
+
+	$ ./codebae clone C
+	...
+
 2. Run Universal-ctags for the cloned code with following command line:
 
    .. code-block:: console
@@ -57,6 +63,29 @@ We assume you may have enough storage space on your PC.
 
    Results are displayed to your terminal. Tee'ed output goes
    to a file under results/ directory.
+
+   An example command line for running C parser:
+
+   .. code-block:: console
+
+	$ cd /home/yamato/hacking/ctags-github; ./autogen.sh; ./configure; make
+	$ cd /home/yamato/hacking/codebase
+	$ CTAGS_EXE=/home/yamato/hacking/ctags-github/ctags ./codebase ctags C
+	version: 2c46f6d4
+	features: +wildcards +regex +iconv +option-directory +xpath +json +interactive +sandbox +yaml +aspell +packcc
+	log: results/2c46f6d4,C...................,..........,time......,default...,2019-03-18-12:47:20.log
+	tagsoutput: /dev/null
+	cmdline: + /home/yamato/var/ctags-github/ctags --quiet --options=NONE --sort=no --options=profile.d/maps --totals=yes --languages=C -o - -R code/linux code/php-src code/ruby
+	27886 files, 19784832 lines (555082 kB) scanned in 15.1 seconds (36686 kB/s)
+	1158391 tags added to tag file
+
+	real	0m15.172s
+	user	0m14.735s
+	sys	0m0.399s
+	+ set +x
+
+   In the above output, "36686 kB/s" represents the speed of parsing of C parser.
+   "1158391 tags" represents the number of tags captured by C parser.
 
 
 How to add your code to code base
