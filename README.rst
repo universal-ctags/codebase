@@ -19,7 +19,7 @@ We assume you may have enough storage space on your PC.
 	$ ./codebase clone <LANGUAGE>
 
 
-   The following command lists available languages :
+   The following command lists available languages:
 
 
    .. code-block:: console
