@@ -21,7 +21,7 @@
 
 : ${VCS:=git}
 : ${MAIN_BRANCH:=master}
-: ${CTAGS=u-ctags}
+: ${CTAGS_EXE=u-ctags}
 
 ERROR ()
 {
@@ -436,8 +436,8 @@ cmd_ctags_run()
     local odirs
     local odir
 
-    if ! type "${CTAGS}" > /dev/null 2>&1; then
-	ERROR 1 "No ${CTAGS} found (set CTAGS environment variable)"
+    if ! type "${CTAGS_EXE}" > /dev/null 2>&1; then
+	ERROR 1 "No ${CTAGS_EXE} found (set CTAGS_EXE environment variable)"
     fi
 
     odirs=$(
@@ -468,8 +468,8 @@ cmd_ctags_run()
     ctags_prep
 
     local start=$(date  "+%F-%R:%S")
-    local ctags_version=$(${CTAGS} --version | sed -ne 's/.*\([0-9a-f]\{8\}\).*/\1/p')
-    local ctags_features=$(${CTAGS} --version | grep features: | sed -e 's/^[^:]\+: //' -e 's/, / /g')
+    local ctags_version=$(${CTAGS_EXE} --version | sed -ne 's/.*\([0-9a-f]\{8\}\).*/\1/p')
+    local ctags_features=$(${CTAGS_EXE} --version | grep features: | sed -e 's/^[^:]\+: //' -e 's/, / /g')
     local alignment=default
     local inputs=$(for odir in ${odirs}; do echo "code/${odir}"; done)
     local fbody=$(printf "%s,% -20s,% -10s,% -10s,% -10s,%s" "${ctags_version}" "${language}" "${profile}" "${measure}" "${alignment}" "${start}" | tr ' ' .)
@@ -498,26 +498,26 @@ cmd_ctags_run()
 
 	if [[ "${measure}" = "valgrind" ]]; then
 	    set -x
-	    valgrind ${valgrind_flags} ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
+	    valgrind ${valgrind_flags} ${CTAGS_EXE} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
 		     -R $inputs \
 		     > $ofile
 	    set +x
 	elif [[ "${measure}" = "perf" ]]; then
 	    set -x
-	    perf record -g ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
+	    perf record -g ${CTAGS_EXE} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
 		 -R $inputs \
 		 > $ofile
 	    set +x
 	else
 	    set -x
-	    time ${CTAGS} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
+	    time ${CTAGS_EXE} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
 		 -R $inputs \
 		 > $ofile
 	    set +x
 	fi
     ) 2>&1 | grep -v '^set +x' | tee ${log}
     else
-	gdb -e ${CTAGS} -ex "run --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -R $input"
+	gdb -e ${CTAGS_EXE} -ex "run --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -R $input"
 	rm -f ./tags
     fi
 }
