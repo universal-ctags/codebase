@@ -1,0 +1,4 @@
+REPO=https://github.com/doswellf/combinator-uvm.git
+ALIGNMENT=edbf4ae35b2085823160f3dba1a271b6acadb75d
+LANGUAGES=SystemVerilog
+ 

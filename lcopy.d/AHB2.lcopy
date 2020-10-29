@@ -1,0 +1,3 @@
+REPO=https://github.com/GodelMachine/AHB2.git
+ALIGNMENT=98092560f4e1a31593bf7dc5ac6810ff1c2388a4
+LANGUAGES=SystemVerilog
