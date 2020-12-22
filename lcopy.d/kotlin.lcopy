@@ -1,0 +1,3 @@
+REPO=https://github.com/JetBrains/kotlin.git
+ALIGNMENT=v1.4.21
+LANGUAGES=Kotlin
