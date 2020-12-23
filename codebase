@@ -69,6 +69,9 @@ clone_verify()
     if [[ ! -d code ]]; then
 	ERROR 1 "no output directory"
     fi
+    if [[ ! -d lang ]]; then
+	ERROR 1 "no lang-link directory"
+    fi
 }
 
 #
@@ -157,6 +160,32 @@ hg_checkout()
 clone_prep()
 {
     mkdir -p code
+    mkdir -p lang
+}
+
+clone_lang_link()
+{
+    local language=$1
+    local odir=$2
+
+    mkdir -p lang/${language}
+    if ! [[ -e lang/${language}/"${odir}" ]]; then
+	ln -s ../../code/"${odir}" lang/${language}/"${odir}"
+    fi
+
+}
+
+clone_langs_link()
+{
+    local languages="$1"
+    local odir="$2"
+    local l
+    (
+	IFS=,
+	for l in $languages; do
+	    clone_lang_link "$l" "${odir}"
+	done
+    )
 }
 
 cmd_clone_run()
@@ -191,8 +220,10 @@ cmd_clone_run()
 			       member_csv "${language}" "${LANGUAGES}"; then
 			    type "${VCS}"_clone > /dev/null 2>&1 || ERROR 1 "no such vcs handler: ${VCS}"
 			    "${VCS}"_clone "${REPO}" "code/${odir}"
-			    cd "code/${odir}"
-			    "${VCS}"_checkout "${ALIGNMENT}"
+			    if ( cd "code/${odir}";
+				 "${VCS}"_checkout "${ALIGNMENT}"; ); then
+				clone_langs_link "${LANGUAGES}" "${odir}";
+			    fi
 			fi
 		    fi
 		)

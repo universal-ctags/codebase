@@ -1,5 +1,6 @@
 *~
 code/*
+lang/*
 lcopy.d/private-*.lcopy
 profile.d/private-*.ctags
 results/*
