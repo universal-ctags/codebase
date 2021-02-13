@@ -93,7 +93,15 @@ How to add your code to code base
 ==============================================================
 
 You have to write a .lcopy file and put it to lcopy.d directory.
-See lcopy.d/linux.lcopy as an example.
+See lcopy.d/linux.lcopy as an example::
+
+    REPO=https://github.com/torvalds/linux
+    ALIGNMENT=v4.20
+    LANGUAGES=C,LdScript,Asm,Kconfig,DTS
+
+`REPO` specifies a git repository.  `ALIGNMENT` is a tag put on the
+git repository.  `ALIGNMENT` allows users of codebase to get the same
+source tree. `LANGUAGES` is a comma separated language list.
 
 
 How to add your profile to preset list
