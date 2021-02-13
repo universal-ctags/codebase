@@ -34,7 +34,8 @@ We assume you may have enough storage space on your PC.
 		    LdScript	linux
 		  ObjectiveC	gnustep-libs-base
 
-   An example preapting C source code:
+   An example preparing C source code:
+
    .. code-block:: console
 
 	$ ./codebae clone C
@@ -50,7 +51,7 @@ We assume you may have enough storage space on your PC.
 
    You can run ctags with different option combination.
    We call such option combination *PROFILE*.
-   The following command is for listing pre defined profiles:
+   The following command is for listing predefined profiles:
 
    .. code-block:: console
 
@@ -104,5 +105,5 @@ You may wan to use `--options-maybe` to extend profile without
 modifying existing .ctags files.
 
 
-Let's optimize ourt parsers!
+Let's optimize our parsers!
 Masatake YAMATO <yamato@redhat.com>
