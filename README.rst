@@ -2,7 +2,7 @@
 Reference codebase for Universal-ctags
 ==============================================================
 
-This is the reference codebase for measuring the performance of
+This is the reference code base for measuring the performance of
 Universal-ctags parsers.
 
 
@@ -38,7 +38,7 @@ We assume you may have enough storage space on your PC.
 
    .. code-block:: console
 
-	$ ./codebae clone C
+	$ ./codebase clone C
 	...
 
 2. Run Universal-ctags for the cloned code with following command line:
@@ -47,7 +47,8 @@ We assume you may have enough storage space on your PC.
 
 	$ [CTAGS_EXE=${where your ctags executable is}] ./codebase ctags <LANGUAGE> [<PROFILE>]
 
-   codebase refers *CTAGS_EXE* environment variable to run ctags.
+   `codebase` refers *CTAGS_EXE* environment variable to run ctags. If
+   CTAGS_EXE is not defined, `ctags` is used as the command name.
 
    You can run ctags with different option combination.
    We call such option combination *PROFILE*.
@@ -92,6 +93,8 @@ We assume you may have enough storage space on your PC.
 How to add your code to code base
 ==============================================================
 
+The code to be added to the code base must have a git repository.
+
 You have to write a .lcopy file and put it to lcopy.d directory.
 See lcopy.d/linux.lcopy as an example::
 
@@ -99,19 +102,29 @@ See lcopy.d/linux.lcopy as an example::
     ALIGNMENT=v4.20
     LANGUAGES=C,LdScript,Asm,Kconfig,DTS
 
+`codebase` commands loads a .lcopy file with source built-in command. In
+a .lcopy file must define `REPO`, `ALIGNMENT`, and `LANGUAGES`.
+
 `REPO` specifies a git repository.  `ALIGNMENT` is a tag put on the
-git repository.  `ALIGNMENT` allows users of codebase to get the same
-source tree. `LANGUAGES` is a comma separated language list.
+git repository.  `ALIGNMENT` allows users of `codebase` to get the same
+source tree. Specify a git tag or commit as `ALIGNMENT`. A git branch
+is not acceptable. `LANGUAGES` is a comma separated language list.
 
 
-How to add your profile to preset list
+How to add a new profile
 ==============================================================
 
-You have to write a .ctags file and put it to profile.d directory.
-A line started from "# @" is used as a description for the profile.
-You may wan to use `--options-maybe` to extend profile without
-modifying existing .ctags files.
+Add a .ctags file under profile.d directory.
+In the .ctags file, a line started from "# @" is used as a
+description for the profile.
 
+You may want to use `--options` to extend profile without
+modifying existing .ctags files. If you want to extend `base.ctags`
+in the profile.d directory, write your profile (`extended.ctags`)
+as following::
+
+  --options=base.ctags
+  ...
 
 Let's optimize our parsers!
 Masatake YAMATO <yamato@redhat.com>
