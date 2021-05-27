@@ -539,7 +539,7 @@ cmd_ctags_run()
 	    set +x
 	elif [[ "${measure}" = "perf" ]]; then
 	    set -x
-	    perf record -g ${CTAGS_EXE} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
+	    perf record --call-graph lbr ${CTAGS_EXE} --quiet --options=NONE --sort=no $opt --totals=yes --languages=${language} -o - \
 		 -R $inputs \
 		 > $ofile
 	    set +x
