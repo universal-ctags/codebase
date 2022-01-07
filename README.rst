@@ -48,6 +48,8 @@ We assume you may have enough storage space on your PC.
 	$ [CTAGS_EXE=${where your ctags executable is}] ./codebase ctags <LANGUAGE> [<PROFILE>]
 
    codebase refers *CTAGS_EXE* environment variable to run ctags.
+   `--ctags ${where your ctags executable is}` is an alternative way to
+   specify the ctags executable you want to test.
 
    You can run ctags with different option combination.
    We call such option combination *PROFILE*.

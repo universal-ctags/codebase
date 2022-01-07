@@ -354,13 +354,16 @@ cmd_list_profiles_run()
 cmd_ctags_help_simple()
 {
     cat <<EOF
-$0 ctags [-v] [-o TAGOUTPUT|-O] [--valgrind|--perf|--gdb] [LANGUAGE|all] [PROFILE]
+$0 ctags [-v] [--ctags CTAGS_EXE] [-o TAGOUTPUT|-O] [--valgrind|--perf|--gdb] [LANGUAGE|all] [PROFILE]
 EOF
 }
 
 cmd_ctags_help()
 {
     cat <<EOF
+	--ctags
+	Specify ctags executable.
+
 	-v|--verbose
 	Makes the output of $0 verbose (not for ctags itself).
 
@@ -399,6 +402,15 @@ cmd_ctags_run()
 
     while [[ $# -gt 0 ]]; do
 	case "$1" in
+	    (--ctags)
+		shift 1
+		CTAGS_EXE=$1
+		shift 1
+		;;
+	    (--ctags=*)
+		CTAGS_EXE=${1/--ctags=/}
+		shift 1
+		;;
 	    (--verbose|-v)
 		verbose=1
 		shift 1
