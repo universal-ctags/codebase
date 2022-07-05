@@ -91,6 +91,24 @@ We assume you may have enough storage space on your PC.
    "1158391 tags" represents the number of tags captured by C parser.
 
 
+codebase stores the cloned source code to `code` directory. The directory is
+repository base. codebase makes another directory, `lang`, for your convince.
+As the name shows, `lang` is language bases. You can run ctags directly on
+a directory for the language you are interested in:
+
+.. code-block:: console
+
+	[codebase]$ cd lang
+	[codebase/lang]$ ls
+	Asm    C++	GDScript  Java	      Kconfg	Lua   Markdown	Perl		R      SQL	  VHDL
+	Basic  CMake	Go	  JavaScript  Kotlin	Make  Meson	PHP		RSpec  SystemTap  XSLT
+	C      Fortran	HTML	  Julia       LdScript	Man   OpenAPI	PuppetManifest	Ruby   Vala	  YACC
+	[codebase/lang]$ ~/var/ctags-developing/ctags -R JavaScript
+	ctags: Warning: ignoring null tag in JavaScript/mediawiki/.svgo.config.js(line: 6)
+	ctags: main/entry.c:1454: registerEntry: Assertion `corkIndex != CORK_NIL' failed.
+	ctags: main/entry.c:1454: parsing JavaScript/mediawiki/.svgo.config.js:6 as JavaScript
+	Aborted (core dumped)
+
 How to add your code to code base
 ==============================================================
 
