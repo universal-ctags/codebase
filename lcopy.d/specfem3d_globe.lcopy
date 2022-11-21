@@ -1,0 +1,4 @@
+REPO=https://github.com/SPECFEM/specfem3d_globe.git
+ALIGNMENT=v7.0.2
+LANGUAGES=Fortran,Cuda
+# (Freeform fortran)
