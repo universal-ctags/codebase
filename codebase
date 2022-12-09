@@ -133,10 +133,10 @@ git_clone()
     local repo=$1
     local odir=$2
 
-    git clone "${repo}" "${odir}" || ERROR 1 "failed to clone git repo: ${repo}"
+    git clone --depth 1 "${repo}" "${odir}" || ERROR 1 "failed to clone git repo: ${repo}"
     (
 	cd "${odir}"
-	git submodule update --init --recursive || ERROR 1 "failed to update git submodule: ${repo}"
+	git submodule update --init --recursive --depth 1|| ERROR 1 "failed to update git submodule: ${repo}"
     )
 }
 
