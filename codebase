@@ -133,8 +133,14 @@ git_clone()
 {
     local repo=$1
     local odir=$2
+    local tag=$3
 
-    git clone --depth 1 "${repo}" "${odir}" || ERROR 1 "failed to clone git repo: ${repo}"
+    local bopt
+    if [[ -n "$tag" ]]; then
+	bopt="-b $tag"
+    fi
+
+    git clone --depth 1 $bopt "${repo}" "${odir}" || ERROR 1 "failed to clone git repo: ${repo}"
     (
 	cd "${odir}"
 	git submodule update --init --recursive --depth 1|| ERROR 1 "failed to update git submodule: ${repo}"
@@ -192,6 +198,26 @@ clone_langs_link()
     )
 }
 
+is_git_tag()
+{
+    local vcs=$1
+    local alignment=$2
+
+    if [[ "$vcs" != "git" ]]; then
+	return 1
+    fi
+
+    if [[ ${#alignment} != 40 ]]; then
+	return 0
+    fi
+
+    if [[ ${alignment} =~ ^[a-f0-9]{40,40}$ ]]; then
+	return 1
+    fi
+
+    return 0
+}
+
 cmd_clone_run()
 {
     local language=$1
@@ -222,12 +248,14 @@ cmd_clone_run()
 			fi
 			if [[ "${language}" = all ]] ||
 			       member_csv "${language}" "${LANGUAGES}"; then
-			    type "${VCS}"_clone > /dev/null 2>&1 || ERROR 1 "no such vcs handler: ${VCS}"
-			    "${VCS}"_clone "${REPO}" "code/${odir}"
-			    if ( cd "code/${odir}";
-				 "${VCS}"_checkout "${ALIGNMENT}"; ); then
-				clone_langs_link "${LANGUAGES}" "${odir}";
-			    fi
+			    if is_git_tag "${VCS}" "${ALIGNMENT}"; then
+				git_clone "${REPO}" "code/${odir}" "${ALIGNMENT}"
+			    else
+				type "${VCS}"_clone > /dev/null 2>&1 || ERROR 1 "no such vcs handler: ${VCS}"
+				"${VCS}"_clone "${REPO}" "code/${odir}" &&
+				    ( cd "code/${odir}";
+				      "${VCS}"_checkout "${ALIGNMENT}"; )
+			    fi && clone_langs_link "${LANGUAGES}" "${odir}";
 			fi
 		    fi
 		)
