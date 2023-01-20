@@ -255,7 +255,18 @@ cmd_clone_run()
 				"${VCS}"_clone "${REPO}" "code/${odir}" &&
 				    ( cd "code/${odir}";
 				      "${VCS}"_checkout "${ALIGNMENT}"; )
-			    fi && clone_langs_link "${LANGUAGES}" "${odir}";
+			    fi
+			fi
+		    fi
+		)
+	    fi
+	    if [[ -d code/"${odir}" ]]; then
+		(
+		    if source ${lcopy}; then
+			if [[ -n "${LANGUAGES}" ]] && (
+			       [[ "${language}" = all ]] ||
+				   member_csv "${language}" "${LANGUAGES}" ); then
+			    clone_langs_link "${LANGUAGES}" "${odir}"
 			fi
 		    fi
 		)
