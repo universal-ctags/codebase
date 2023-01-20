@@ -57,6 +57,7 @@ member_csv()
     IFS=,
     for elt in $@; do
 	if [[ "$elt" = "$t" ]]; then
+	    IFS=$OLDIFS
 	    return 0
 	fi
     done
