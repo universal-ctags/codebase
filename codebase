@@ -135,15 +135,19 @@ git_clone()
     local odir=$2
     local tag=$3
 
+    local dopt="--depth 1"
+
     local bopt
-    if [[ -n "$tag" ]]; then
+    if [[ "$tag" == "--full-depth" ]]; then
+	dopt=
+    elif [[ -n "$tag" ]]; then
 	bopt="-b $tag"
     fi
 
-    git clone --depth 1 $bopt "${repo}" "${odir}" || ERROR 1 "failed to clone git repo: ${repo}"
+    git clone $dopt $bopt "${repo}" "${odir}" || ERROR 1 "failed to clone git repo: ${repo}"
     (
 	cd "${odir}"
-	git submodule update --init --recursive --depth 1|| ERROR 1 "failed to update git submodule: ${repo}"
+	git submodule update --init --recursive $dopt|| ERROR 1 "failed to update git submodule: ${repo}"
     )
 }
 
@@ -252,7 +256,7 @@ cmd_clone_run()
 				git_clone "${REPO}" "code/${odir}" "${ALIGNMENT}"
 			    else
 				type "${VCS}"_clone > /dev/null 2>&1 || ERROR 1 "no such vcs handler: ${VCS}"
-				"${VCS}"_clone "${REPO}" "code/${odir}" &&
+				"${VCS}"_clone "${REPO}" "code/${odir}" --full-depth &&
 				    ( cd "code/${odir}";
 				      "${VCS}"_checkout "${ALIGNMENT}"; )
 			    fi
