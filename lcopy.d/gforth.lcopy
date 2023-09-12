@@ -1,0 +1,3 @@
+REPO=https://git.savannah.gnu.org/git/gforth.git
+ALIGNMENT=0.7.9_20230907
+LANGUAGES=Forth,C
