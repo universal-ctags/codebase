@@ -240,7 +240,6 @@ cmd_clone_run()
 	    if [[ ! -d code/"${odir}" ]]; then
 		(
 		    if source ${lcopy}; then
-			verify_cmd ${VCS}
 			if [[ -z "${REPO}" ]]; then
 			    ERROR 1 "no REPO given in ${lcopy}"
 			fi
@@ -252,6 +251,7 @@ cmd_clone_run()
 			fi
 			if [[ "${language}" = all ]] ||
 			       member_csv "${language}" "${LANGUAGES}"; then
+			    verify_cmd ${VCS}
 			    if is_git_tag "${VCS}" "${ALIGNMENT}"; then
 				git_clone "${REPO}" "code/${odir}" "${ALIGNMENT}"
 			    else
