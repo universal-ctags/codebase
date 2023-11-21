@@ -1,0 +1,3 @@
+REPO=https://github.com/vlang/v.git
+ALIGNMENT=weekly.2023.45.1
+LANGUAGES=V
